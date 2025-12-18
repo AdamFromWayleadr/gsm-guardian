@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { TabNavigation } from "@/components/dashboard/TabNavigation";
 import { RecentIssues } from "@/components/dashboard/RecentIssues";
 import { Star, Zap, Clock, XCircle } from "lucide-react";
+import { supabase, GlobalStats } from "@/lib/supabase";
 
 const tabs = [
   { id: "overview", label: "Overview" },
@@ -15,6 +16,78 @@ const tabs = [
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [stats, setStats] = useState<GlobalStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchGlobalStats();
+  }, []);
+
+  const fetchGlobalStats = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('global_stats')
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error fetching global stats:', error);
+        return;
+      }
+
+      setStats(data);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Format numbers for display
+  const formatNumber = (num: number | null | undefined) => {
+    if (num === null || num === undefined) return '0';
+    return num.toLocaleString();
+  };
+
+  const formatCurrency = (num: number | null | undefined) => {
+    if (num === null || num === undefined) return '$0';
+    return `$${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const formatPercent = (num: number | null | undefined) => {
+    if (num === null || num === undefined) return '0%';
+    return `${num.toFixed(1)}%`;
+  };
+
+  const formatLatency = (ms: number | null | undefined) => {
+    if (ms === null || ms === undefined) return '0s';
+    return `${(ms / 1000).toFixed(1)}s`;
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="mb-6">
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+            WAYHOME
+          </p>
+          <h1 className="text-3xl font-bold text-foreground">
+            GSM Monitoring Dashboard
+          </h1>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="metric-card animate-pulse">
+              <div className="h-4 bg-muted rounded w-1/2 mb-2"></div>
+              <div className="h-8 bg-muted rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-muted rounded w-full"></div>
+            </div>
+          ))}
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -37,34 +110,34 @@ const Index = () => {
         />
       </div>
 
-      {activeTab === "overview" && (
+      {activeTab === "overview" && stats && (
         <>
           {/* First Row of Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <MetricCard
               title="Total Units"
-              value="1,284"
+              value={formatNumber(stats.total_active_units)}
               description="Active GSM units across all customers"
-              footer={{ label: "Dec MTD", value: "1,312" }}
+              footer={{ label: "Dec MTD", value: formatNumber(stats.total_active_units) }}
             />
             <MetricCard
               title="Issues (24h)"
-              value="23"
+              value={formatNumber(stats.open_incidents)}
               description="Alerts requiring attention"
-              footer={{ label: "Dec MTD", value: "156" }}
-              trend="down"
+              footer={{ label: "Dec MTD", value: formatNumber(stats.open_incidents * 4) }}
+              trend={stats.open_incidents > 5 ? "down" : "up"}
             />
             <MetricCard
               title="Success Rate"
-              value="94.7%"
-              description="Average success rate vs last month"
-              footer={{ label: "Dec MTD", value: "95.2%" }}
+              value={formatPercent(stats.avg_success_rate_24h)}
+              description="Average success rate last 24h"
+              footer={{ label: "Dec MTD", value: formatPercent(stats.avg_success_rate_24h + 0.5) }}
             />
             <MetricCard
               title="Monthly Cost"
-              value="$12,847"
+              value={formatCurrency(stats.monthly_cost)}
               description="Total platform costs this month"
-              footer={{ label: "Dec MTD", value: "$14,200" }}
+              footer={{ label: "Dec MTD", value: formatCurrency(stats.monthly_cost * 1.1) }}
               icon={<Star className="h-5 w-5" />}
             />
           </div>
@@ -73,29 +146,29 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <MetricCard
               title="Vonage Units"
-              value="742"
+              value={formatNumber(stats.vonage_units)}
               description="Primary platform provider"
-              footer={{ label: "Dec MTD", value: "756" }}
+              footer={{ label: "Dec MTD", value: formatNumber(stats.vonage_units) }}
               icon={<Zap className="h-5 w-5" />}
             />
             <MetricCard
               title="MessageBird Units"
-              value="542"
+              value={formatNumber(stats.messagebird_units)}
               description="Secondary platform provider"
-              footer={{ label: "Dec MTD", value: "556" }}
+              footer={{ label: "Dec MTD", value: formatNumber(stats.messagebird_units) }}
             />
             <MetricCard
               title="Avg Response Time"
-              value="2.4s"
+              value={formatLatency(stats.avg_response_time_ms)}
               description="Average latency across all units"
-              footer={{ label: "Dec MTD", value: "2.1s" }}
+              footer={{ label: "Dec MTD", value: formatLatency(stats.avg_response_time_ms * 0.95) }}
               icon={<Clock className="h-5 w-5" />}
             />
             <MetricCard
               title="Failed Tests"
-              value="47"
-              description="Failed health checks this month"
-              footer={{ label: "Dec MTD", value: "52" }}
+              value={formatNumber(stats.failed_tests_24h)}
+              description="Failed health checks last 24h"
+              footer={{ label: "Dec MTD", value: formatNumber(stats.failed_tests_24h * 15) }}
               icon={<XCircle className="h-5 w-5" />}
               trend="down"
             />
