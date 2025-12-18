@@ -12,10 +12,44 @@ import {
 import { cn } from "@/lib/utils";
 
 const companies = [
-  { id: "acme", name: "Acme Corp" },
-  { id: "techstart", name: "TechStart Inc" },
-  { id: "globalcom", name: "GlobalCom" },
-  { id: "nexgen", name: "NexGen Solutions" },
+  { id: "acacia-point", name: "Acacia Point" },
+  { id: "alstom", name: "Alstom" },
+  { id: "annie-e-casey", name: "Annie E. Casey Foundation" },
+  { id: "avalon-bay", name: "Avalon Bay" },
+  { id: "bazaarvoice", name: "BazaarVoice" },
+  { id: "belfast-city-council", name: "Belfast City Council" },
+  { id: "bunnings", name: "Bunnings" },
+  { id: "carbogen", name: "Carbogen" },
+  { id: "ebay", name: "eBay" },
+  { id: "ericsson", name: "Ericsson" },
+  { id: "fanatics", name: "Fanatics" },
+  { id: "film-factory", name: "Film Factory" },
+  { id: "genesys", name: "Genesys" },
+  { id: "google", name: "Google" },
+  { id: "housing-agency", name: "Housing Agency" },
+  { id: "hpra", name: "HPRA" },
+  { id: "indeed", name: "Indeed" },
+  { id: "kennedy-wilson", name: "Kennedy Wilson" },
+  { id: "mapp", name: "MAPP" },
+  { id: "motors", name: "Motors" },
+  { id: "novartis", name: "Novartis" },
+  { id: "ntma", name: "NTMA" },
+  { id: "on-ag", name: "ON AG" },
+  { id: "openai", name: "OpenAI" },
+  { id: "prestilux", name: "Prestilux" },
+  { id: "qtectic", name: "Qtectic" },
+  { id: "reece", name: "Reece" },
+  { id: "sanderson", name: "Sanderson Solutions Group Plc" },
+  { id: "sanofi", name: "Sanofi" },
+  { id: "sodexo", name: "Sodexo" },
+  { id: "sothebys", name: "Sothebys" },
+  { id: "sxsw", name: "SXSW" },
+  { id: "thales-edisoft", name: "Thales & Edisoft" },
+  { id: "uber", name: "Uber" },
+  { id: "ukri", name: "UKRI" },
+  { id: "university-cambridge", name: "University of Cambridge" },
+  { id: "university-sunderland", name: "University of Sunderland" },
+  { id: "version-1", name: "Version 1" },
 ];
 
 export function Sidebar() {
@@ -39,7 +73,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         <Link
           to="/"
           className={cn("nav-item", isActive("/") && "nav-item-active")}
@@ -68,13 +102,13 @@ export function Sidebar() {
           </button>
           
           {companiesOpen && (
-            <div className="ml-8 mt-1 space-y-1">
+            <div className="ml-8 mt-1 space-y-1 max-h-96 overflow-y-auto">
               {companies.map((company) => (
                 <Link
                   key={company.id}
                   to={`/companies/${company.id}`}
                   className={cn(
-                    "nav-item text-sm",
+                    "nav-item text-sm py-1.5",
                     location.pathname === `/companies/${company.id}` && "nav-item-active"
                   )}
                 >
